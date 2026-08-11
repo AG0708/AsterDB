@@ -1,0 +1,79 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: RustSec advisory audit
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Dependency licenses, sources, and bans
+        uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check
+          arguments: --all-features
+
+  rust:
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal --component clippy,rustfmt
+      - name: Select Rust toolchain
+        run: rustup default 1.97.1
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Rust tests
+        run: cargo test --workspace --locked --all-targets
+      - name: Black-box SQLite differential test
+        run: python3 tools/sql_differential.py --seeds 0 --operations 30
+      - name: Python checker self-tests
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
+      - name: Install pinned Go toolchain
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: '1.26.5'
+          cache-dependency-path: tools/porcupine-check/go.sum
+      - name: Porcupine wrapper self-tests
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: tools/porcupine-check
+        run: go test ./...
+      - name: Reproducible SPDX inventory
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          SOURCE_DATE_EPOCH=1700000000 python3 tools/generate_sbom.py --output /tmp/asterdb-a.spdx.json
+          SOURCE_DATE_EPOCH=1700000000 python3 tools/generate_sbom.py --output /tmp/asterdb-b.spdx.json
+          cmp /tmp/asterdb-a.spdx.json /tmp/asterdb-b.spdx.json
+      - name: External linearizability gate
+        if: matrix.os == 'ubuntu-latest'
+        run: python3 tools/cluster_history.py --seeds 1 --clients 2 --operations-per-client 4
+      - name: Install pinned Java toolchain
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Bounded TLA+ safety model
+        if: matrix.os == 'ubuntu-latest'
+        run: tools/check_tla.sh
