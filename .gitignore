@@ -1,0 +1,12 @@
+/target/
+/dist/
+__pycache__/
+*.py[cod]
+**/*.db
+**/*.wal
+**/*.snap
+**/*.pid
+.DS_Store
+/benchmarks/results/
+artifacts/
+model/states/
