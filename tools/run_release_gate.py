@@ -130,6 +130,20 @@ def first_version_line(command: Sequence[str], cwd: pathlib.Path) -> Dict[str, A
 Step = Tuple[str, Sequence[str], pathlib.Path, Mapping[str, str]]
 
 
+def release_rustflags() -> str:
+    """Return Cargo-encoded flags that remove builder-specific source paths."""
+    mappings = (
+        (ROOT, pathlib.PurePosixPath("/usr/src/asterdb")),
+        (pathlib.Path.home(), pathlib.PurePosixPath("/usr/src/build-home")),
+        (pathlib.Path(tempfile.gettempdir()), pathlib.PurePosixPath("/tmp")),
+    )
+    flags = [
+        "--remap-path-prefix={}={}".format(source.resolve(), destination)
+        for source, destination in mappings
+    ]
+    return "\x1f".join(flags)
+
+
 def step_definitions(output: pathlib.Path) -> List[Step]:
     differential = output / "differential"
     linearizability = output / "linearizability"
@@ -220,7 +234,7 @@ def step_definitions(output: pathlib.Path) -> List[Step]:
                 "--bins",
             ],
             ROOT,
-            {},
+            {"CARGO_ENCODED_RUSTFLAGS": release_rustflags()},
         ),
         (
             "standalone-benchmark",
@@ -285,6 +299,8 @@ def run_step(
         }
     )
     environment.update(additions)
+    if "CARGO_ENCODED_RUSTFLAGS" in additions:
+        environment.pop("RUSTFLAGS", None)
     started = time.monotonic()
     with log_path.open("wb") as log:
         completed = subprocess.run(
@@ -358,6 +374,17 @@ def copy_binaries(output: pathlib.Path) -> List[Dict[str, Any]]:
             raise ReleaseGateError("release binary is missing: {}".format(name))
         target = destination / name
         shutil.copy2(str(source), str(target))
+        binary = target.read_bytes()
+        private_paths = {
+            str(ROOT.resolve()).encode("utf-8"),
+            str(pathlib.Path.home().resolve()).encode("utf-8"),
+            str(pathlib.Path(tempfile.gettempdir()).resolve()).encode("utf-8"),
+        }
+        leaked = [path for path in private_paths if path and path in binary]
+        if leaked:
+            raise ReleaseGateError(
+                "release binary contains builder-specific absolute paths: {}".format(name)
+            )
         records.append(
             {
                 "path": target.relative_to(output).as_posix(),
