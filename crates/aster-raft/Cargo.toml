@@ -1,0 +1,18 @@
+[package]
+name = "aster-raft"
+description = "Deterministic Raft consensus core and adversarial simulator for AsterDB"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+aster-core = { path = "../aster-core", version = "0.1.0" }
+rand.workspace = true
+serde.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,28 @@
+[package]
+name = "aster-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+aster-core = { path = "../aster-core", version = "0.1.0" }
+aster-db = { path = "../aster-db", version = "0.1.0" }
+aster-engine = { path = "../aster-engine", version = "0.1.0" }
+aster-protocol = { path = "../aster-protocol", version = "0.1.0" }
+aster-runtime = { path = "../aster-runtime", version = "0.1.0" }
+aster-sql = { path = "../aster-sql", version = "0.1.0" }
+aster-storage = { path = "../aster-storage", version = "0.1.0" }
+async-trait.workspace = true
+clap.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

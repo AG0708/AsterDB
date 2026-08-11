@@ -1,0 +1,26 @@
+[package]
+name = "aster-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Persistent Raft and TCP peer runtime for AsterDB"
+
+[dependencies]
+aster-core = { path = "../aster-core", version = "0.1.0" }
+aster-db = { path = "../aster-db", version = "0.1.0" }
+aster-protocol = { path = "../aster-protocol", version = "0.1.0" }
+aster-raft = { path = "../aster-raft", version = "0.1.0" }
+clap.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
