@@ -150,3 +150,6 @@ in `make release-gate`.
 
 Apache-2.0. See [`LICENSE`](LICENSE) and
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+Tagged changes and their explicit limitation boundary are recorded in
+[`CHANGELOG.md`](CHANGELOG.md).

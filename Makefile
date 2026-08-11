@@ -27,7 +27,7 @@ verify-external:
 	$(PYTHON) tools/cluster_history.py
 
 release-gate:
-	$(PYTHON) tools/run_release_gate.py
+	$(PYTHON) tools/run_release_gate.py --require-clean
 
 sbom:
 	SOURCE_DATE_EPOCH=$${SOURCE_DATE_EPOCH:-1700000000} \
