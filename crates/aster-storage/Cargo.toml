@@ -1,0 +1,15 @@
+[package]
+name = "aster-storage"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "Checksummed page storage, indexes, WAL, and recovery for AsterDB"
+
+[dependencies]
+parking_lot.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+
+[lints]
+workspace = true
