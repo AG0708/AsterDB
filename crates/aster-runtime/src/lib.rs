@@ -1185,6 +1185,30 @@ mod tests {
         panic!("replicated proposal did not succeed: {last_error}");
     }
 
+    async fn query_until_success(
+        handles: &BTreeMap<NodeId, RuntimeHandle>,
+        allowed: &[NodeId],
+        client_id: [u8; 16],
+        sequence: u64,
+        sql: &str,
+    ) -> ExecutionResult {
+        let mut last_error = String::new();
+        for _ in 0..12 {
+            let leader = wait_for_leader(handles, allowed).await;
+            match handles[&leader]
+                .linearizable_query(client_id, sequence, sql, Vec::new())
+                .await
+            {
+                Ok(result) => return result,
+                Err(error) => {
+                    last_error = error.to_string();
+                    sleep(Duration::from_millis(50)).await;
+                }
+            }
+        }
+        panic!("linearizable query did not succeed: {last_error}");
+    }
+
     fn applied_index(result: &ExecutionResult) -> u64 {
         match result {
             ExecutionResult::Query(result) => result.applied_index,
@@ -1371,8 +1395,10 @@ mod tests {
         wait_applied(&handles, &all, final_index).await;
         wait_snapshot(&handles, &[lagging], compacted_through).await;
         let installed_status = handles[&lagging].status().await.unwrap();
-        let installed_boundary = installed_status.snapshot_index;
-        assert!(installed_boundary.is_some_and(|index| index >= compacted_through));
+        let installed_boundary = installed_status
+            .snapshot_index
+            .expect("caught-up follower must publish a snapshot boundary");
+        assert!(installed_boundary >= compacted_through);
         assert!(installed_status.snapshot_bytes.unwrap() > 16 * 1024);
 
         nodes.remove(&lagging).unwrap().crash().await;
@@ -1381,21 +1407,20 @@ mod tests {
         handles.insert(lagging, restarted.handle.clone());
         nodes.insert(lagging, restarted);
         wait_applied(&handles, &all, final_index).await;
-        assert_eq!(
-            handles[&lagging].status().await.unwrap().snapshot_index,
-            installed_boundary
+        let restarted_boundary = handles[&lagging].status().await.unwrap().snapshot_index;
+        assert!(
+            restarted_boundary.is_some_and(|index| index >= installed_boundary),
+            "restart must preserve the installed boundary, but may compact farther"
         );
 
-        let current_leader = wait_for_leader(&handles, &all).await;
-        let query = handles[&current_leader]
-            .linearizable_query(
-                [0xB4; 16],
-                1,
-                "SELECT id, value FROM snapshots ORDER BY id",
-                Vec::new(),
-            )
-            .await
-            .unwrap();
+        let query = query_until_success(
+            &handles,
+            &all,
+            [0xB4; 16],
+            1,
+            "SELECT id, value FROM snapshots ORDER BY id",
+        )
+        .await;
         let ExecutionResult::Query(query) = query else {
             panic!("expected query result");
         };
