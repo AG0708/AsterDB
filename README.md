@@ -1,7 +1,7 @@
-# AsterDB
+# Replicated SQL Database in Rust
 
-A replicated SQL database written in Rust. AsterDB uses one Raft group and
-snapshot isolation. It is not production-ready.
+A replicated SQL database using one Raft group and snapshot isolation. It is
+not production-ready.
 
 ## Features
 

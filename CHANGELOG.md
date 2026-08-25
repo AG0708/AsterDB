@@ -14,4 +14,4 @@ Limits: one Raft group, no sharding, snapshot isolation rather than
 serializability, autocommit-only replicated writes, and no authentication or
 TLS.
 
-[0.1.0]: https://github.com/AG0708/AsterDB/releases/tag/v0.1.0
+[0.1.0]: https://github.com/AG0708/replicated-sql-database-in-rust/releases/tag/v0.1.0

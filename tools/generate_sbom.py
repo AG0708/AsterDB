@@ -145,7 +145,7 @@ def generate() -> dict[str, Any]:
         "SPDXID": root_id,
         "name": "AsterDB",
         "versionInfo": "0.1.0",
-        "downloadLocation": "https://github.com/AG0708/asterdb",
+        "downloadLocation": "https://github.com/AG0708/replicated-sql-database-in-rust",
         "filesAnalyzed": False,
         "licenseConcluded": "Apache-2.0",
         "licenseDeclared": "Apache-2.0",
@@ -172,7 +172,7 @@ def generate() -> dict[str, Any]:
         "SPDXID": "SPDXRef-DOCUMENT",
         "name": "AsterDB-0.1.0",
         "documentNamespace": (
-            "https://github.com/AG0708/asterdb/sbom/"
+            "https://github.com/AG0708/replicated-sql-database-in-rust/sbom/"
             + namespace_digest.hexdigest()
         ),
         "creationInfo": {
