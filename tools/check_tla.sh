@@ -2,7 +2,7 @@
 set -eu
 
 TLA_VERSION=v1.8.0
-TLA_SHA256=ab323b79802aedc3203b3f9af37c6aca3ed43f4e0225b36f2aa77b26de46c05f
+TLA_SHA256=eabd140a70f49eb9305a3bd3f3df944eddf87e5a90d329789085f8953a80533a
 TLA_URL="https://github.com/tlaplus/tlaplus/releases/download/${TLA_VERSION}/tla2tools.jar"
 TLA_CACHE_DIR="${TMPDIR:-/tmp}/asterdb-tla"
 TLA_JAR="${ASTERDB_TLA_JAR:-${TLA_CACHE_DIR}/tla2tools-${TLA_VERSION}.jar}"
